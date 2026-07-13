@@ -134,6 +134,7 @@
 /* 编辑条目底部删除按钮 */
 .form-actions {
   align-items: center;
+  z-index: 20;
 }
 .form-action-spacer {
   flex: 1 1 auto;
@@ -166,7 +167,17 @@
   display: none !important;
 }
 
-/* 新建预览角标层级修正：叉号最高，封面不遮挡删除 */
+/* 新建/编辑预览角标层级：叉号只高于缩略图，不压过底部操作栏 */
+.edit-image-grid {
+  position: relative;
+  z-index: 1;
+}
+.new-image-thumb,
+.edit-image-thumb {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
 .new-image-thumb .remove-image,
 .edit-image-thumb .remove-image {
   right: -9px !important;
@@ -175,11 +186,11 @@
   height: 29px !important;
   border: 3px solid #fff8f0 !important;
   background: rgba(45,36,32,.92) !important;
-  z-index: 12 !important;
+  z-index: 2 !important;
 }
 .new-image-thumb.cover-selected::before {
   left: 7px !important;
   top: 7px !important;
-  z-index: 5 !important;
+  z-index: 1 !important;
   pointer-events: none !important;
 }
