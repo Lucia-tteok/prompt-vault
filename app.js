@@ -25,6 +25,7 @@ function imageSource(image) {
   return blobUrls.get(image);
 }
 const displayDate = (value = '') => String(value).replaceAll('-', '.');
+const sameId = (left, right) => String(left) === String(right);
 const coverIndexOf = (item) => Math.min(Math.max(Number(item.coverIndex) || 0, 0), Math.max((item.images?.length || 1) - 1, 0));
 const coverImageOf = (item) => item.images?.[coverIndexOf(item)] || item.images?.[0] || '';
 
@@ -142,16 +143,16 @@ function render() {
 }
 
 async function toggleFavorite(id) {
-  const item = items.find((entry) => entry.id === id);
+  const item = items.find((entry) => sameId(entry.id, id));
   if (!item) return;
   item.favorite = !item.favorite;
   await putItem(item);
-  if (current?.id === id) $('#favoriteBtn').classList.toggle('active', item.favorite);
+  if (current && sameId(current.id, id)) $('#favoriteBtn').classList.toggle('active', item.favorite);
   render();
 }
 
 async function openDetail(id) {
-  current = items.find((item) => item.id === id);
+  current = items.find((item) => sameId(item.id, id));
   if (!current) return;
   current.lastViewed = Date.now();
   await putItem(current);
@@ -191,7 +192,7 @@ async function deleteCurrentEntry() {
   if (!current || !confirm(`确定删除“${current.title}”吗？此操作无法撤销。`)) return;
   const id = current.id;
   await removeItem(id);
-  items = items.filter((item) => item.id !== id);
+  items = items.filter((item) => !sameId(item.id, id));
   current = null;
   closeDetail();
   renderTags();
@@ -467,7 +468,7 @@ $('#entryForm').onsubmit = async (event) => {
   submitButton.innerHTML = '<i data-lucide="loader-circle"></i>正在保存';
   lucide.createIcons();
   try {
-    const existing = editingId ? items.find((entry) => entry.id === editingId) : null;
+    const existing = editingId ? items.find((entry) => sameId(entry.id, editingId)) : null;
     const item = {
       id: existing?.id || Date.now(),
       title: form.elements.title.value.trim(),
@@ -482,7 +483,7 @@ $('#entryForm').onsubmit = async (event) => {
     };
     await putItem(item);
     if (existing) {
-      items = items.map((entry) => entry.id === item.id ? item : entry);
+      items = items.map((entry) => sameId(entry.id, item.id) ? item : entry);
     } else {
       items.unshift(item);
     }
