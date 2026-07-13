@@ -13,6 +13,7 @@ let newImageFiles = [];
 let editingId = null;
 let editingImages = [];
 let draggingImageIndex = null;
+let draggingCardId = null;
 
 const gallery = $('#gallery');
 const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (char) => ({
@@ -93,6 +94,10 @@ function renderTags() {
   });
 }
 
+function itemOrderOf(item) {
+  return Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : Number.MAX_SAFE_INTEGER;
+}
+
 function getFilteredItems() {
   const query = $('#searchInput').value.trim().toLocaleLowerCase('zh-CN');
   let list = items.filter((item) => {
@@ -106,17 +111,43 @@ function getFilteredItems() {
     list = [...list].sort((a, b) => {
       if (sort === 'images') return b.images.length - a.images.length;
       if (sort === 'title') return a.title.localeCompare(b.title, 'zh-CN');
-      return String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date));
+      if (sort === 'newest') return String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date));
+      return itemOrderOf(a) - itemOrderOf(b) || String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date));
     });
   }
   return list;
+}
+
+async function persistAllItemOrder(orderedItems = items) {
+  orderedItems.forEach((item, index) => {
+    item.sortOrder = index;
+  });
+  await Promise.all(orderedItems.map((item) => putItem(item)));
+}
+
+async function moveGalleryCard(fromId, toId) {
+  if (!fromId || !toId || sameId(fromId, toId)) return;
+  $('#sortSelect').value = 'custom';
+  const visible = getFilteredItems();
+  const fromIndex = visible.findIndex((item) => sameId(item.id, fromId));
+  const toIndex = visible.findIndex((item) => sameId(item.id, toId));
+  if (fromIndex < 0 || toIndex < 0) return;
+  const [moved] = visible.splice(fromIndex, 1);
+  visible.splice(toIndex, 0, moved);
+  const visibleIds = new Set(visible.map((item) => String(item.id)));
+  const hidden = items.filter((item) => !visibleIds.has(String(item.id))).sort((a, b) => itemOrderOf(a) - itemOrderOf(b));
+  items = [...visible, ...hidden];
+  await persistAllItemOrder(items);
+  renderTags();
+  render();
+  toast('排序已保存');
 }
 
 function render() {
   const list = getFilteredItems();
   $('#allCount').textContent = items.length;
   $('#resultCount').textContent = list.length;
-  gallery.innerHTML = list.map((item) => `<article class="card" data-id="${item.id}">
+  gallery.innerHTML = list.map((item) => `<article class="card" data-id="${item.id}" draggable="true" title="拖动卡片可调整首页顺序">
     <div class="cover">
       <img src="${coverImageOf(item)}" alt="${escapeHtml(item.title)}">
       <button class="fav ${item.favorite ? 'active' : ''}" data-fav="${item.id}" aria-label="${item.favorite ? '取消收藏' : '收藏'}"><i data-lucide="heart"></i></button>
@@ -130,8 +161,33 @@ function render() {
   $('#empty p').textContent = items.length ? '试试其他关键词或标签' : '点击右上角“新建条目”开始上传';
   document.querySelectorAll('.card').forEach((card) => {
     card.onclick = (event) => {
-      if (!event.target.closest('.fav')) openDetail(card.dataset.id);
+      if (!event.target.closest('.fav') && !card.classList.contains('dragging-card')) openDetail(card.dataset.id);
     };
+    card.addEventListener('dragstart', (event) => {
+      if (event.target.closest('button')) {
+        event.preventDefault();
+        return;
+      }
+      draggingCardId = card.dataset.id;
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', draggingCardId);
+      requestAnimationFrame(() => card.classList.add('dragging-card'));
+    });
+    card.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over-card'));
+    card.addEventListener('drop', async (event) => {
+      event.preventDefault();
+      card.classList.remove('drag-over-card');
+      const from = event.dataTransfer.getData('text/plain') || draggingCardId;
+      await moveGalleryCard(from, card.dataset.id);
+    });
+    card.addEventListener('dragend', () => {
+      draggingCardId = null;
+      document.querySelectorAll('.dragging-card,.drag-over-card').forEach((node) => node.classList.remove('dragging-card', 'drag-over-card'));
+    });
   });
   document.querySelectorAll('[data-fav]').forEach((button) => {
     button.onclick = (event) => {
@@ -480,6 +536,7 @@ function openEntry() {
   $('#entryTitle').textContent = '添加提示词';
   renderNewImagePicker();
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存条目';
+  $('#deleteEditingEntry').style.display = 'none';
   form.elements.date.value = new Date().toISOString().slice(0, 10);
   lucide.createIcons();
   requestAnimationFrame(() => $('#entryDialog').showModal());
@@ -497,6 +554,7 @@ function openEditEntry() {
   $('#entryEyebrow').textContent = 'EDIT NOTE';
   $('#entryTitle').textContent = '编辑提示词';
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存修改';
+  $('#deleteEditingEntry').style.display = 'inline-flex';
   editingImages = [...(current.images || [])];
     revokePreviews();
   renderEditImages();
@@ -522,6 +580,22 @@ function closeSettings() {
 function toggleTheme() {
   document.body.classList.toggle('dark');
   localStorage.setItem('promptVaultTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+async function deleteEditingEntry() {
+  const id = editingId;
+  const item = items.find((entry) => sameId(entry.id, id));
+  if (!item || !confirm(`确定删除“${item.title}”吗？此操作无法撤销。`)) return;
+  await removeItem(item.id);
+  items = items.filter((entry) => !sameId(entry.id, item.id));
+  current = null;
+  editingId = null;
+  await persistAllItemOrder(items.sort((a, b) => itemOrderOf(a) - itemOrderOf(b)));
+  closeEntry();
+  closeDetail({ clear: true });
+  renderTags();
+  render();
+  toast('条目已删除');
 }
 
 async function clearAllData() {
@@ -569,13 +643,20 @@ $('#entryForm').onsubmit = async (event) => {
       favorite: Boolean(existing?.favorite),
       lastViewed: existing?.lastViewed || null,
       images: existing ? editingImages : await Promise.all(newImageFiles.map(fileToData)),
-      coverIndex: 0
+      coverIndex: 0,
+      sortOrder: existing ? itemOrderOf(existing) : 0
     };
-    await putItem(item);
     if (existing) {
+      await putItem(item);
       items = items.map((entry) => sameId(entry.id, item.id) ? item : entry);
     } else {
+      items.forEach((entry) => {
+        entry.sortOrder = itemOrderOf(entry) + 1;
+      });
+      await Promise.all(items.map((entry) => putItem(entry)));
+      await putItem(item);
       items.unshift(item);
+      $('#sortSelect').value = 'custom';
     }
     editingId = null;
     closeEntry();
@@ -617,6 +698,7 @@ document.querySelectorAll('.nav-item').forEach((button) => {
 $('#addButton').onclick = openEntry;
 $('#closeEntry').onclick = closeEntry;
 $('#cancelEntry').onclick = closeEntry;
+$('#deleteEditingEntry').onclick = deleteEditingEntry;
 $('#entryDialog').addEventListener('click', (event) => {
   if (event.target === $('#entryDialog')) closeEntry();
 });
@@ -653,6 +735,10 @@ async function init() {
     db = await openDatabase();
     await migrateLegacyItems();
     items = await getAllItems();
+    if (items.some((item) => !Number.isFinite(Number(item.sortOrder)))) {
+      items.sort((a, b) => String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date)));
+      await persistAllItemOrder(items);
+    }
     renderTags();
     render();
   } catch (error) {

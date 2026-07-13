@@ -128,3 +128,32 @@
   box-shadow: 0 5px 12px rgba(91, 163, 113, .28);
   pointer-events: none;
 }
+
+
+/* 编辑条目底部删除按钮 */
+.form-actions {
+  align-items: center;
+}
+.form-action-spacer {
+  flex: 1 1 auto;
+}
+.delete-edit-btn {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  border: 2px dashed #d96b5f;
+  background: #fff7f4;
+  color: #b94b42;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(217, 107, 95, .18);
+}
+.delete-edit-btn svg {
+  width: 17px;
+}
+.delete-edit-btn:hover {
+  transform: translateY(-1px) rotate(-1deg);
+  background: #ffece7;
+}
