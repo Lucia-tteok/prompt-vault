@@ -166,7 +166,7 @@ main { margin-left: var(--sidebar); min-height: 100vh; }
 }
 .mobile-menu { display: none; }
 
-.content { padding: 43px clamp(20px, 4vw, 52px) 70px; max-width: 1600px; margin: auto; }
+.content { padding: 43px clamp(20px, 4vw, 52px) 70px; max-width: 1360px; margin: auto; }
 .heading-row { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .eyebrow { font: 500 10px 'DM Mono'; color: var(--accent); letter-spacing: .17em; margin: 0 0 7px; }
 h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }
@@ -193,7 +193,7 @@ h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }
   color: #76645b;
 }
 .chip.active { background: #76574c; border-color: #76574c; color: #fff; }
-.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px 18px; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 12px; }
 .card {
   cursor: pointer;
   min-width: 0;
@@ -249,18 +249,22 @@ h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }
 .overlay.open { opacity: 1; pointer-events: auto; }
 .detail {
   position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: min(680px, 100%);
+  left: 50%;
+  top: 50%;
+  width: min(760px, calc(100% - 32px));
+  max-height: 88vh;
   background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   z-index: 40;
-  transform: translateX(100%);
-  transition: transform .3s ease;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -47%) scale(.98);
+  transition: opacity .22s ease, transform .22s ease;
   overflow: auto;
-  box-shadow: -20px 0 50px rgba(93, 74, 55, .14);
+  box-shadow: 0 24px 70px rgba(93, 74, 55, .24);
 }
-.detail.open { transform: none; }
+.detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 .detail-head {
   height: 67px;
   border-bottom: 1px solid var(--line);
@@ -299,6 +303,39 @@ dialog::backdrop { background: rgba(8, 9, 8, .92); }
 #lightboxImg { display: block; max-width: 86vw; max-height: 86vh; object-fit: contain; }
 .lightbox-close { position: fixed; right: 24px; top: 20px; background: #2d2420; color: white; border-color: #6d584f; }
 #lightboxCount { color: #fff; text-align: center; }
+.settings-dialog {
+  width: min(520px, calc(100% - 24px));
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(93, 74, 55, .22);
+  overflow: hidden;
+}
+.settings-dialog::backdrop { background: rgba(71, 54, 42, .36); }
+.settings-panel { padding: 24px; display: grid; gap: 12px; }
+.setting-row {
+  width: 100%;
+  min-height: 78px;
+  border: 1px solid var(--line);
+  background: #fffaf3;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.setting-row:hover { border-color: #e3bda9; background: #fff4eb; }
+.setting-row span { display: grid; gap: 5px; }
+.setting-row strong { font-size: 14px; }
+.setting-row small { color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.5; }
+.setting-row svg { width: 19px; flex: 0 0 19px; color: var(--accent); }
+.setting-row.danger { border-color: #edc4b7; background: #fff5f1; }
+.setting-row.danger strong, .setting-row.danger svg { color: #b6422e; }
 .toast {
   position: fixed;
   left: 50%;

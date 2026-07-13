@@ -23,7 +23,7 @@
     </nav>
     <div class="nav-label">标签</div>
     <div id="sideTags" class="side-tags"></div>
-    <button class="settings"><i data-lucide="settings"></i><span>设置</span></button>
+    <button class="settings" id="settingsButton"><i data-lucide="settings"></i><span>设置</span></button>
   </aside>
 
   <main>
@@ -49,20 +49,28 @@
   </main>
 
   <div class="overlay" id="overlay"></div>
-  <aside class="detail" id="detail" aria-hidden="true">
-    <div class="detail-head"><button class="icon-btn" id="closeDetail" aria-label="关闭详情"><i data-lucide="x"></i></button><div class="detail-head-actions"><button class="icon-btn" id="favoriteBtn" aria-label="收藏"><i data-lucide="heart"></i></button><button class="icon-btn" aria-label="更多"><i data-lucide="more-horizontal"></i></button></div></div>
+  <aside class="detail" id="detail" aria-hidden="true" inert>
+    <div class="detail-head"><button class="icon-btn" id="closeDetail" aria-label="关闭详情"><i data-lucide="x"></i></button><div class="detail-head-actions"><button class="icon-btn" id="favoriteBtn" aria-label="收藏"><i data-lucide="heart"></i></button><button class="icon-btn" id="editEntry" aria-label="编辑条目"><i data-lucide="more-horizontal"></i></button></div></div>
     <div id="detailContent"></div>
   </aside>
 
   <dialog id="lightbox"><button class="icon-btn lightbox-close" aria-label="关闭大图"><i data-lucide="x"></i></button><img id="lightboxImg" alt="生成结果大图"><p id="lightboxCount"></p></dialog>
 
+  <dialog id="settingsDialog" class="settings-dialog">
+    <div class="settings-panel">
+      <div class="form-head"><div><p class="eyebrow">SETTINGS</p><h2>设置</h2></div><button type="button" class="icon-btn" id="closeSettings" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <button type="button" class="setting-row" id="settingsTheme"><span><strong>切换主题</strong><small>在浅色和深色界面之间切换</small></span><i data-lucide="moon"></i></button>
+      <button type="button" class="setting-row danger" id="clearData"><span><strong>清空本地数据</strong><small>删除当前浏览器保存的所有条目</small></span><i data-lucide="trash-2"></i></button>
+    </div>
+  </dialog>
+
   <dialog id="entryDialog" class="entry-dialog">
     <form id="entryForm">
-      <div class="form-head"><div><p class="eyebrow">NEW NOTE</p><h2>添加提示词</h2></div><button type="button" class="icon-btn" id="closeEntry" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="form-head"><div><p class="eyebrow" id="entryEyebrow">NEW NOTE</p><h2 id="entryTitle">添加提示词</h2></div><button type="button" class="icon-btn" id="closeEntry" aria-label="关闭"><i data-lucide="x"></i></button></div>
       <label>标题<input name="title" required maxlength="80" placeholder="例如：月下的银发魔女"></label>
       <div class="form-row"><label>标签<input name="tag" maxlength="30" placeholder="角色立绘"></label><label>生成日期<input name="date" type="date"></label></div>
       <label>正向提示词<textarea name="prompt" required rows="7" placeholder="masterpiece, best quality, 1girl..."></textarea></label>
-      <label class="upload-zone" id="uploadZone"><input id="imageInput" name="images" type="file" accept="image/*" multiple required><i data-lucide="image-plus"></i><strong>选择生成图片</strong><span>支持一次选择多张 JPG、PNG 或 WEBP</span></label>
+      <label class="upload-zone" id="uploadZone"><input id="imageInput" name="images" type="file" accept="image/*" multiple><i data-lucide="image-plus"></i><strong id="uploadTitle">选择生成图片</strong><span id="uploadHint">支持一次选择多张 JPG、PNG 或 WEBP</span></label>
       <div id="uploadPreview" class="upload-preview"></div>
       <div class="form-actions"><button type="button" class="cancel-btn" id="cancelEntry">取消</button><button type="submit" class="save-btn"><i data-lucide="save"></i>保存条目</button></div>
     </form>

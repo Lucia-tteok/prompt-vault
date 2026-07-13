@@ -9,6 +9,7 @@ let activeTag = '全部';
 let mode = 'all';
 let current = null;
 let previewUrls = [];
+let editingId = null;
 
 const gallery = $('#gallery');
 const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (char) => ({
@@ -161,6 +162,7 @@ async function openDetail(id) {
   </div>`;
   $('#detail').classList.add('open');
   $('#detail').setAttribute('aria-hidden', 'false');
+  $('#detail').inert = false;
   $('#overlay').classList.add('open');
   document.querySelectorAll('[data-copy]').forEach((button) => {
     button.onclick = () => copyText(current[button.dataset.copy] || '');
@@ -172,10 +174,12 @@ async function openDetail(id) {
   lucide.createIcons();
 }
 
-function closeDetail() {
+function closeDetail({ clear = false } = {}) {
   $('#detail').classList.remove('open');
   $('#detail').setAttribute('aria-hidden', 'true');
+  $('#detail').inert = true;
   $('#overlay').classList.remove('open');
+  if (clear) $('#detailContent').innerHTML = '';
 }
 
 async function deleteCurrentEntry() {
@@ -227,16 +231,72 @@ function revokePreviews() {
 
 function openEntry() {
   const form = $('#entryForm');
+  editingId = null;
   form.reset();
+  $('#entryEyebrow').textContent = 'NEW NOTE';
+  $('#entryTitle').textContent = '添加提示词';
+  $('#uploadTitle').textContent = '选择生成图片';
+  $('#uploadHint').textContent = '支持一次选择多张 JPG、PNG 或 WEBP';
+  form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存条目';
   form.elements.date.value = new Date().toISOString().slice(0, 10);
   revokePreviews();
   $('#uploadPreview').innerHTML = '';
+  lucide.createIcons();
+  requestAnimationFrame(() => $('#entryDialog').showModal());
+}
+
+function openEditEntry() {
+  if (!current) return;
+  const form = $('#entryForm');
+  editingId = current.id;
+  form.reset();
+  form.elements.title.value = current.title || '';
+  form.elements.tag.value = current.tag || '';
+  form.elements.date.value = current.date || new Date().toISOString().slice(0, 10);
+  form.elements.prompt.value = current.prompt || '';
+  $('#entryEyebrow').textContent = 'EDIT NOTE';
+  $('#entryTitle').textContent = '编辑提示词';
+  $('#uploadTitle').textContent = '替换生成图片';
+  $('#uploadHint').textContent = '不重新选择图片时，会保留原来的图片';
+  form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存修改';
+  revokePreviews();
+  $('#uploadPreview').innerHTML = (current.images || []).slice(0, 6).map((image, index) =>
+    `<img src="${imageSource(image)}" alt="当前图片 ${index + 1}">`
+  ).join('');
+  closeDetail();
+  lucide.createIcons();
   requestAnimationFrame(() => $('#entryDialog').showModal());
 }
 
 function closeEntry() {
   revokePreviews();
   if ($('#entryDialog').open) $('#entryDialog').close();
+}
+
+function openSettings() {
+  requestAnimationFrame(() => $('#settingsDialog').showModal());
+}
+
+function closeSettings() {
+  if ($('#settingsDialog').open) $('#settingsDialog').close();
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('promptVaultTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+async function clearAllData() {
+  if (!confirm('确定清空当前浏览器保存的所有条目吗？此操作无法撤销。')) return;
+  await Promise.all(items.map((item) => removeItem(item.id)));
+  items = [];
+  current = null;
+  activeTag = '全部';
+  closeDetail({ clear: true });
+  closeSettings();
+  renderTags();
+  render();
+  toast('本地数据已清空');
 }
 
 function closeMobileMenu() {
@@ -253,36 +313,46 @@ $('#entryForm').onsubmit = async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const files = [...form.elements.images.files];
-  if (!files.length) return;
+  if (!files.length && !editingId) {
+    toast('请至少选择一张图片');
+    return;
+  }
   const submitButton = form.querySelector('[type="submit"]');
+  const wasEditing = Boolean(editingId);
   submitButton.disabled = true;
   submitButton.innerHTML = '<i data-lucide="loader-circle"></i>正在保存';
   lucide.createIcons();
   try {
+    const existing = editingId ? items.find((entry) => entry.id === editingId) : null;
     const item = {
-      id: Date.now(),
+      id: existing?.id || Date.now(),
       title: form.elements.title.value.trim(),
       tag: form.elements.tag.value.trim() || '未分类',
       date: form.elements.date.value || new Date().toISOString().slice(0, 10),
-      createdAt: Date.now(),
+      createdAt: existing?.createdAt || Date.now(),
       prompt: form.elements.prompt.value.trim(),
-      favorite: false,
-      lastViewed: null,
-      images: await Promise.all(files.map(fileToData))
+      favorite: Boolean(existing?.favorite),
+      lastViewed: existing?.lastViewed || null,
+      images: files.length ? await Promise.all(files.map(fileToData)) : existing.images
     };
     await putItem(item);
-    items.unshift(item);
+    if (existing) {
+      items = items.map((entry) => entry.id === item.id ? item : entry);
+    } else {
+      items.unshift(item);
+    }
+    editingId = null;
     closeEntry();
     activeTag = '全部';
     renderTags();
     render();
-    toast('条目已保存');
+    toast(existing ? '修改已保存' : '条目已保存');
   } catch (error) {
     console.error(error);
     toast('保存失败，请检查浏览器存储空间');
   } finally {
     submitButton.disabled = false;
-    submitButton.innerHTML = '<i data-lucide="save"></i>保存条目';
+    submitButton.innerHTML = wasEditing ? '<i data-lucide="save"></i>保存修改' : '<i data-lucide="save"></i>保存条目';
     lucide.createIcons();
   }
 };
@@ -292,11 +362,13 @@ $('#sortSelect').onchange = render;
 $('#closeDetail').onclick = closeDetail;
 $('#overlay').onclick = closeDetail;
 $('#favoriteBtn').onclick = () => current && toggleFavorite(current.id);
+$('#editEntry').onclick = openEditEntry;
 $('#lightbox .lightbox-close').onclick = () => $('#lightbox').close();
-$('#themeToggle').onclick = () => {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('promptVaultTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
-};
+$('#themeToggle').onclick = toggleTheme;
+$('#settingsButton').onclick = openSettings;
+$('#closeSettings').onclick = closeSettings;
+$('#settingsTheme').onclick = toggleTheme;
+$('#clearData').onclick = clearAllData;
 $('.mobile-menu').onclick = () => $('.sidebar').classList.toggle('open');
 document.querySelectorAll('.nav-item').forEach((button) => {
   button.onclick = () => {
@@ -316,6 +388,13 @@ $('#entryDialog').addEventListener('cancel', (event) => {
   event.preventDefault();
   closeEntry();
 });
+$('#settingsDialog').addEventListener('click', (event) => {
+  if (event.target === $('#settingsDialog')) closeSettings();
+});
+$('#settingsDialog').addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeSettings();
+});
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
   if ($('#entryDialog').open) {
@@ -323,10 +402,16 @@ document.addEventListener('keydown', (event) => {
     closeEntry();
     return;
   }
+  if ($('#settingsDialog').open) {
+    event.preventDefault();
+    closeSettings();
+    return;
+  }
   if ($('#detail').classList.contains('open')) closeDetail();
 });
 
 async function init() {
+  closeDetail({ clear: true });
   try {
     if (localStorage.getItem('promptVaultTheme') === 'dark') document.body.classList.add('dark');
     db = await openDatabase();
