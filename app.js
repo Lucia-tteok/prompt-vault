@@ -89,7 +89,7 @@ function renderTags() {
 function getFilteredItems() {
   const query = $('#searchInput').value.trim().toLocaleLowerCase('zh-CN');
   let list = items.filter((item) => {
-    const searchable = `${item.title} ${item.tag} ${item.prompt} ${item.negative || ''}`.toLocaleLowerCase('zh-CN');
+    const searchable = `${item.title} ${item.tag} ${item.prompt}`.toLocaleLowerCase('zh-CN');
     return (activeTag === '全部' || item.tag === activeTag) && (!query || searchable.includes(query));
   });
   if (mode === 'favorite') list = list.filter((item) => item.favorite);
@@ -156,10 +156,6 @@ async function openDetail(id) {
     <div class="detail-tags"><span class="detail-tag">${escapeHtml(current.tag)}</span><span class="detail-tag">${current.images.length} 张结果</span></div>
     <div class="section-label"><span>正向提示词</span><button class="copy-btn" data-copy="prompt"><i data-lucide="copy"></i>复制</button></div>
     <div class="prompt-box">${escapeHtml(current.prompt)}</div>
-    <div class="section-label"><span>负向提示词</span><button class="copy-btn" data-copy="negative"><i data-lucide="copy"></i>复制</button></div>
-    <div class="prompt-box negative">${escapeHtml(current.negative || '未填写')}</div>
-    <div class="section-label"><span>生成参数</span></div>
-    <div class="params"><div class="param"><span>STEPS</span><b>${escapeHtml(current.steps)}</b></div><div class="param"><span>GUIDANCE</span><b>${escapeHtml(current.scale)}</b></div><div class="param"><span>SAMPLER</span><b>${escapeHtml(current.sampler || '未填写')}</b></div></div>
     <div class="section-label"><span>生成结果 · ${current.images.length}</span><button class="copy-btn delete-entry" id="deleteEntry"><i data-lucide="trash-2"></i>删除条目</button></div>
     <div class="result-grid">${current.images.map((image, index) => `<img src="${image}" alt="${escapeHtml(current.title)} 生成结果 ${index + 1}" data-image="${index}">`).join('')}</div>
   </div>`;
@@ -270,10 +266,6 @@ $('#entryForm').onsubmit = async (event) => {
       date: form.elements.date.value || new Date().toISOString().slice(0, 10),
       createdAt: Date.now(),
       prompt: form.elements.prompt.value.trim(),
-      negative: form.elements.negative.value.trim(),
-      steps: Number(form.elements.steps.value),
-      scale: Number(form.elements.scale.value),
-      sampler: form.elements.sampler.value.trim(),
       favorite: false,
       lastViewed: null,
       images: await Promise.all(files.map(fileToData))
