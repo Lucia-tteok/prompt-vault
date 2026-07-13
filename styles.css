@@ -689,3 +689,12 @@ body {
   font-weight: bold !important;
   border-radius: 10px !important;
 }
+
+
+/* ===== FIX SPACING ===== */
+.content {
+  padding-top: 10px !important;
+}
+.topbar {
+  margin-bottom: 0 !important;
+}
