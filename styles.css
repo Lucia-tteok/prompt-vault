@@ -536,7 +536,8 @@ body {
   background: var(--panel) !important;
   border-right: 4px dashed var(--accent) !important;
   box-shadow: 10px 0 20px rgba(91, 163, 113, 0.15) !important;
-  position: relative !important;
+  position: fixed !important;
+  inset: 0 auto 0 0 !important;
 }
 /* 给侧边栏右侧加一排“打孔”圆点，模拟线圈活页本 */
 .sidebar::after {
