@@ -1,10 +1,11 @@
 :root {
-  --bg: #fff8f0;
-  --panel: #fffdf8;
+  --bg: #fdfaf6;
+  --tape: rgba(230, 200, 180, 0.4);
+  --panel: #ffffff;
   --text: #2d2420;
   --muted: #8a756b;
-  --line: #ead8cc;
-  --accent: #d16957;
+  --line: #e6d3c8;
+  --accent: #e5989b; /* 可爱的粉红色系 */
   --accent-soft: #fff0e8;
   --sage: #8aa384;
   --sky: #8ca7c6;
@@ -14,7 +15,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: #fcfbf9;
+  background: #fdfaf6;
   color: var(--text);
   font-family: 'Noto Sans SC', sans-serif;
   font-size: 14px;
@@ -382,4 +383,31 @@ body.dark { --bg:#171916; --panel:#22241f; --text:#f0f1ec; --muted:#999d94; --li
   .card-title { font-size: 14px; }
   .detail-body { padding: 22px 18px; }
   .result-grid { gap: 5px; }
+}
+
+.prompt-card {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 2px 4px 10px rgba(180, 160, 150, 0.15);
+  border: 1px solid var(--line);
+  position: relative;
+}
+.prompt-card::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 12px;
+  background: var(--tape);
+  border-radius: 2px;
+  z-index: 1;
+}
+.prompt-card:hover {
+  transform: translateY(-4px) rotate(1deg);
+  box-shadow: 4px 8px 16px rgba(180, 160, 150, 0.25);
 }
