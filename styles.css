@@ -190,6 +190,20 @@ h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }
   color: #6f5c52;
 }
 .icon-btn.selected { background: #fff1e6; }
+.import-file { display: none !important; }
+.view-actions .icon-btn {
+  width: 42px;
+  height: 40px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+.view-actions .icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
 .chips { display: flex; gap: 8px; overflow: auto; padding: 28px 0 24px; }
 .chip {
   white-space: nowrap;

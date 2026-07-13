@@ -160,6 +160,12 @@
 }
 
 
+/* 新建预览：去掉“拖动”文字标注，只保留拖拽能力 */
+.new-image-thumb::after {
+  content: none !important;
+  display: none !important;
+}
+
 /* 新建预览角标层级修正：叉号最高，封面不遮挡删除 */
 .new-image-thumb .remove-image,
 .edit-image-thumb .remove-image {
@@ -170,9 +176,6 @@
   border: 3px solid #fff8f0 !important;
   background: rgba(45,36,32,.92) !important;
   z-index: 12 !important;
-}
-.new-image-thumb::after {
-  z-index: 4 !important;
 }
 .new-image-thumb.cover-selected::before {
   left: 7px !important;

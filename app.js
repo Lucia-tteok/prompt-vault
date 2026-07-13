@@ -292,6 +292,191 @@ const fileToData = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
+
+function crc32(bytes) {
+  let crc = -1;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+  }
+  return (crc ^ -1) >>> 0;
+}
+
+function writeUint16(view, offset, value) {
+  view.setUint16(offset, value, true);
+}
+
+function writeUint32(view, offset, value) {
+  view.setUint32(offset, value, true);
+}
+
+function createZip(files) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  for (const file of files) {
+    const nameBytes = encoder.encode(file.name);
+    const dataBytes = file.data instanceof Uint8Array ? file.data : encoder.encode(String(file.data));
+    const crc = crc32(dataBytes);
+    const local = new Uint8Array(30 + nameBytes.length);
+    const localView = new DataView(local.buffer);
+    writeUint32(localView, 0, 0x04034b50);
+    writeUint16(localView, 4, 20);
+    writeUint16(localView, 6, 0);
+    writeUint16(localView, 8, 0);
+    writeUint16(localView, 10, 0);
+    writeUint16(localView, 12, 0);
+    writeUint32(localView, 14, crc);
+    writeUint32(localView, 18, dataBytes.length);
+    writeUint32(localView, 22, dataBytes.length);
+    writeUint16(localView, 26, nameBytes.length);
+    writeUint16(localView, 28, 0);
+    local.set(nameBytes, 30);
+    localParts.push(local, dataBytes);
+
+    const central = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(central.buffer);
+    writeUint32(centralView, 0, 0x02014b50);
+    writeUint16(centralView, 4, 20);
+    writeUint16(centralView, 6, 20);
+    writeUint16(centralView, 8, 0);
+    writeUint16(centralView, 10, 0);
+    writeUint16(centralView, 12, 0);
+    writeUint16(centralView, 14, 0);
+    writeUint32(centralView, 16, crc);
+    writeUint32(centralView, 20, dataBytes.length);
+    writeUint32(centralView, 24, dataBytes.length);
+    writeUint16(centralView, 28, nameBytes.length);
+    writeUint16(centralView, 30, 0);
+    writeUint16(centralView, 32, 0);
+    writeUint16(centralView, 34, 0);
+    writeUint16(centralView, 36, 0);
+    writeUint32(centralView, 38, 0);
+    writeUint32(centralView, 42, offset);
+    central.set(nameBytes, 46);
+    centralParts.push(central);
+    offset += local.length + dataBytes.length;
+  }
+  const centralSize = centralParts.reduce((total, part) => total + part.length, 0);
+  const end = new Uint8Array(22);
+  const endView = new DataView(end.buffer);
+  writeUint32(endView, 0, 0x06054b50);
+  writeUint16(endView, 8, files.length);
+  writeUint16(endView, 10, files.length);
+  writeUint32(endView, 12, centralSize);
+  writeUint32(endView, 16, offset);
+  return new Blob([...localParts, ...centralParts, end], { type: 'application/zip' });
+}
+
+function readZipText(buffer, targetName = 'prompt-vault-data.json') {
+  const bytes = new Uint8Array(buffer);
+  const view = new DataView(buffer);
+  const decoder = new TextDecoder();
+  let offset = 0;
+  while (offset + 30 <= bytes.length) {
+    const signature = view.getUint32(offset, true);
+    if (signature !== 0x04034b50) break;
+    const method = view.getUint16(offset + 8, true);
+    const compressedSize = view.getUint32(offset + 18, true);
+    const fileNameLength = view.getUint16(offset + 26, true);
+    const extraLength = view.getUint16(offset + 28, true);
+    const nameStart = offset + 30;
+    const dataStart = nameStart + fileNameLength + extraLength;
+    const name = decoder.decode(bytes.slice(nameStart, nameStart + fileNameLength));
+    if (name === targetName || name.endsWith('/' + targetName)) {
+      if (method !== 0) throw new Error('ZIP 内的数据文件使用了压缩算法，当前仅支持本站导出的 ZIP 或解压后的 JSON');
+      return decoder.decode(bytes.slice(dataStart, dataStart + compressedSize));
+    }
+    offset = dataStart + compressedSize;
+  }
+  throw new Error('没有找到 prompt-vault-data.json');
+}
+
+function normalizeImportItems(rawItems) {
+  if (!Array.isArray(rawItems)) throw new Error('数据格式不正确');
+  return rawItems.map((item) => ({
+    id: item.id || Date.now() + Math.random(),
+    title: String(item.title || '未命名提示词').slice(0, 80),
+    tag: String(item.tag || '未分类').slice(0, 30),
+    date: item.date || new Date().toISOString().slice(0, 10),
+    createdAt: item.createdAt || Date.now(),
+    prompt: String(item.prompt || ''),
+    favorite: Boolean(item.favorite),
+    lastViewed: item.lastViewed || null,
+    images: Array.isArray(item.images) ? item.images.filter(Boolean) : [],
+    coverIndex: 0,
+    sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : Number.MAX_SAFE_INTEGER
+  })).filter((item) => item.prompt && item.images.length);
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportData() {
+  const payload = {
+    app: 'prompt-vault',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: [...items].sort((a, b) => itemOrderOf(a) - itemOrderOf(b))
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const zip = createZip([{ name: 'prompt-vault-data.json', data: json }]);
+  const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+  downloadBlob(zip, `prompt-vault-${stamp}.zip`);
+  toast('数据已打包导出');
+}
+
+async function parseImportFile(file) {
+  const lowerName = file.name.toLowerCase();
+  if (lowerName.endsWith('.zip') || file.type.includes('zip')) {
+    const jsonText = readZipText(await file.arrayBuffer());
+    return JSON.parse(jsonText);
+  }
+  return JSON.parse(await file.text());
+}
+
+async function importDataFile(file) {
+  if (!file) return;
+  try {
+    const payload = await parseImportFile(file);
+    const incoming = normalizeImportItems(Array.isArray(payload) ? payload : payload.items);
+    if (!incoming.length) {
+      toast('没有可导入的条目');
+      return;
+    }
+    const usedIds = new Set(items.map((item) => String(item.id)));
+    const now = Date.now();
+    incoming.forEach((item, index) => {
+      if (usedIds.has(String(item.id))) item.id = now + index;
+      usedIds.add(String(item.id));
+      item.sortOrder = index;
+    });
+    items.forEach((item) => {
+      item.sortOrder = itemOrderOf(item) + incoming.length;
+    });
+    await Promise.all(items.map((item) => putItem(item)));
+    await Promise.all(incoming.map((item) => putItem(item)));
+    items = [...incoming, ...items];
+    $('#sortSelect').value = 'custom';
+    activeTag = '全部';
+    renderTags();
+    render();
+    toast(`已导入 ${incoming.length} 条数据`);
+  } catch (error) {
+    console.error(error);
+    toast(error.message || '导入失败，请检查文件');
+  }
+}
+
 function revokePreviews() {
   previewUrls.forEach((url) => URL.revokeObjectURL(url));
   previewUrls = [];
@@ -692,6 +877,12 @@ $('#settingsButton').onclick = openSettings;
 $('#closeSettings').onclick = closeSettings;
 $('#settingsTheme').onclick = toggleTheme;
 $('#clearData').onclick = clearAllData;
+$('#exportData').onclick = exportData;
+$('#importData').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async (event) => {
+  await importDataFile(event.target.files[0]);
+  event.target.value = '';
+};
 $('.mobile-menu').onclick = () => $('.sidebar').classList.toggle('open');
 document.querySelectorAll('.nav-item').forEach((button) => {
   button.onclick = () => {

@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=detail-tags-preview-1783955300">
-  <link rel="stylesheet" href="form.css?v=detail-tags-preview-1783955300">
+  <link rel="stylesheet" href="styles.css?v=import-export-preview-1783955900">
+  <link rel="stylesheet" href="form.css?v=import-export-preview-1783955900">
   <link rel="stylesheet" href="enhancements.css">
 </head>
 <body>
@@ -33,7 +33,9 @@
         <div><p class="eyebrow">PROMPT NOTEBOOK</p><h1>全部作品</h1><p class="subtitle"><span id="resultCount">0</span> 组提示词与生成结果</p></div>
         <div class="view-actions">
           <select id="sortSelect" aria-label="排序方式"><option value="custom">手动排序</option><option value="newest">最近创建</option><option value="images">图片数量</option><option value="title">标题名称</option></select>
-          <button class="icon-btn selected" aria-label="网格视图"><i data-lucide="grid-2x2"></i></button>
+          <button class="icon-btn" id="exportData" aria-label="导出数据" title="导出数据"><i data-lucide="download"></i></button>
+            <button class="icon-btn" id="importData" aria-label="导入数据" title="导入数据"><i data-lucide="upload"></i></button>
+            <input id="importFile" class="import-file" type="file" accept=".zip,.json,application/zip,application/json" hidden>
         </div>
       </div>
     </section>
@@ -80,6 +82,6 @@
   </dialog>
   <div class="toast" id="toast"><i data-lucide="check"></i><span>已复制到剪贴板</span></div>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="app.js?v=detail-tags-preview-1783955300"></script>
+  <script src="app.js?v=import-export-preview-1783955900"></script>
 </body>
 </html>
