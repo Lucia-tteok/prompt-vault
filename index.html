@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提示词存放库</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="form.css">
+  <link rel="stylesheet" href="enhancements.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#" aria-label="提示词存放库首页">
+      <span class="brand-mark">P</span><span>提示词存放库</span>
+    </a>
+    <nav>
+      <button class="nav-item active" data-filter="all"><i data-lucide="layout-grid"></i><span>全部作品</span><b id="allCount">0</b></button>
+      <button class="nav-item" data-filter="favorite"><i data-lucide="heart"></i><span>我的收藏</span></button>
+      <button class="nav-item" data-filter="recent"><i data-lucide="clock-3"></i><span>最近查看</span></button>
+    </nav>
+    <div class="nav-label">标签</div>
+    <div id="sideTags" class="side-tags"></div>
+    <button class="settings"><i data-lucide="settings"></i><span>设置</span></button>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <button class="mobile-menu icon-btn" aria-label="打开菜单"><i data-lucide="menu"></i></button>
+      <div class="search-wrap"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索标题、提示词或标签…"></div>
+      <button class="icon-btn" aria-label="切换主题" id="themeToggle"><i data-lucide="moon"></i></button>
+      <button class="add-btn" id="addButton"><i data-lucide="plus"></i><span>新建条目</span></button>
+    </header>
+
+    <section class="content">
+      <div class="heading-row">
+        <div><p class="eyebrow">PROMPT ARCHIVE</p><h1>全部作品</h1><p class="subtitle"><span id="resultCount">0</span> 组提示词与生成结果</p></div>
+        <div class="view-actions">
+          <select id="sortSelect" aria-label="排序方式"><option value="newest">最近创建</option><option value="images">图片数量</option><option value="title">标题名称</option></select>
+          <button class="icon-btn selected" aria-label="网格视图"><i data-lucide="grid-2x2"></i></button>
+        </div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="gallery" id="gallery"></div>
+      <div class="empty" id="empty"><i data-lucide="search-x"></i><h2>没有匹配结果</h2><p>试试其他关键词或标签</p></div>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay"></div>
+  <aside class="detail" id="detail" aria-hidden="true">
+    <div class="detail-head"><button class="icon-btn" id="closeDetail" aria-label="关闭详情"><i data-lucide="x"></i></button><div class="detail-head-actions"><button class="icon-btn" id="favoriteBtn" aria-label="收藏"><i data-lucide="heart"></i></button><button class="icon-btn" aria-label="更多"><i data-lucide="more-horizontal"></i></button></div></div>
+    <div id="detailContent"></div>
+  </aside>
+
+  <dialog id="lightbox"><button class="icon-btn lightbox-close" aria-label="关闭大图"><i data-lucide="x"></i></button><img id="lightboxImg" alt="生成结果大图"><p id="lightboxCount"></p></dialog>
+
+  <dialog id="entryDialog" class="entry-dialog">
+    <form id="entryForm">
+      <div class="form-head"><div><p class="eyebrow">NEW ENTRY</p><h2>添加提示词</h2></div><button type="button" class="icon-btn" id="closeEntry" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <label>标题<input name="title" required maxlength="80" placeholder="例如：月下的银发魔女"></label>
+      <div class="form-row"><label>标签<input name="tag" maxlength="30" placeholder="角色立绘"></label><label>生成日期<input name="date" type="date"></label></div>
+      <label>正向提示词<textarea name="prompt" required rows="5" placeholder="masterpiece, best quality…"></textarea></label>
+      <label>负向提示词<textarea name="negative" rows="3" placeholder="lowres, bad anatomy…"></textarea></label>
+      <div class="form-row form-three"><label>Steps<input name="steps" type="number" min="1" value="28"></label><label>Guidance<input name="scale" type="number" min="0" step="0.1" value="5.5"></label><label>Sampler<input name="sampler" value="k_euler_ancestral"></label></div>
+      <label class="upload-zone" id="uploadZone"><input id="imageInput" name="images" type="file" accept="image/*" multiple required><i data-lucide="image-plus"></i><strong>选择生成图片</strong><span>支持一次选择多张 JPG、PNG 或 WEBP</span></label>
+      <div id="uploadPreview" class="upload-preview"></div>
+      <div class="form-actions"><button type="button" class="cancel-btn" id="cancelEntry">取消</button><button type="submit" class="save-btn"><i data-lucide="save"></i>保存条目</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast"><i data-lucide="check"></i><span>已复制到剪贴板</span></div>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

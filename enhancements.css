@@ -1,0 +1,1 @@
+.save-btn:disabled{opacity:.65;cursor:wait}.save-btn:disabled svg{animation:spin 1s linear infinite}.delete-entry{color:#b6422e}@keyframes spin{to{transform:rotate(360deg)}}
