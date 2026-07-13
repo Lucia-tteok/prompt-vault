@@ -39,3 +39,46 @@
   transform: scale(1.05) rotate(2deg) !important;
   box-shadow: 6px 6px 0 var(--accent-soft) !important;
 }
+
+/* =========================================
+   GREEN KAWAII FORM OVERRIDE 
+   ========================================= */
+.entry-dialog {
+  border: 5px dashed var(--accent) !important;
+  background: var(--panel) !important;
+  border-radius: 25px !important;
+  box-shadow: 15px 15px 0 var(--accent-soft), 0 20px 60px rgba(91, 163, 113, 0.4) !important;
+  transform: rotate(-1deg) !important;
+}
+
+.entry-dialog input, .entry-dialog textarea {
+  background: #fcfefe !important;
+  border: 3px dashed var(--line) !important;
+  border-radius: 12px !important;
+  font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', cursive !important;
+  font-size: 16px !important;
+  padding: 15px !important;
+  color: var(--text) !important;
+}
+
+.entry-dialog input:focus, .entry-dialog textarea:focus {
+  border-color: var(--accent) !important;
+  background: #ffffff !important;
+  box-shadow: 5px 5px 0 var(--accent-soft) !important;
+  outline: none !important;
+}
+
+.save-btn {
+  background: var(--accent) !important;
+  border: 3px dashed #fff !important;
+  border-radius: 25px !important;
+  font-family: 'ZCOOL KuaiLe', cursive !important;
+  font-size: 20px !important;
+  padding: 15px !important;
+  box-shadow: 4px 4px 0 var(--line) !important;
+  transition: all 0.2s !important;
+}
+.save-btn:hover {
+  transform: scale(1.05) rotate(2deg) !important;
+  box-shadow: 6px 6px 0 var(--accent-soft) !important;
+}
