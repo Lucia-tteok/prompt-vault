@@ -11,6 +11,8 @@ let current = null;
 let previewUrls = [];
 let editingId = null;
 let editingImages = [];
+let editingCoverIndex = 0;
+let draggingImageIndex = null;
 
 const gallery = $('#gallery');
 const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (char) => ({
@@ -23,6 +25,8 @@ function imageSource(image) {
   return blobUrls.get(image);
 }
 const displayDate = (value = '') => String(value).replaceAll('-', '.');
+const coverIndexOf = (item) => Math.min(Math.max(Number(item.coverIndex) || 0, 0), Math.max((item.images?.length || 1) - 1, 0));
+const coverImageOf = (item) => item.images?.[coverIndexOf(item)] || item.images?.[0] || '';
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -113,7 +117,7 @@ function render() {
   $('#resultCount').textContent = list.length;
   gallery.innerHTML = list.map((item) => `<article class="card" data-id="${item.id}">
     <div class="cover">
-      <img src="${item.images[0]}" alt="${escapeHtml(item.title)}">
+      <img src="${coverImageOf(item)}" alt="${escapeHtml(item.title)}">
       <button class="fav ${item.favorite ? 'active' : ''}" data-fav="${item.id}" aria-label="${item.favorite ? '取消收藏' : '收藏'}"><i data-lucide="heart"></i></button>
       <span class="image-count"><i data-lucide="images"></i>${item.images.length}</span>
     </div>
@@ -125,7 +129,7 @@ function render() {
   $('#empty p').textContent = items.length ? '试试其他关键词或标签' : '点击右上角“新建条目”开始上传';
   document.querySelectorAll('.card').forEach((card) => {
     card.onclick = (event) => {
-      if (!event.target.closest('.fav')) openDetail(Number(card.dataset.id));
+      if (!event.target.closest('.fav')) openDetail(card.dataset.id);
     };
   });
   document.querySelectorAll('[data-fav]').forEach((button) => {
@@ -248,15 +252,66 @@ function renderNewImagePicker() {
   lucide.createIcons();
 }
 
+function clampEditingCover() {
+  editingCoverIndex = Math.min(Math.max(editingCoverIndex, 0), Math.max(editingImages.length - 1, 0));
+}
+
+function swapEditingImages(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= editingImages.length || to >= editingImages.length) return;
+  [editingImages[from], editingImages[to]] = [editingImages[to], editingImages[from]];
+  if (editingCoverIndex === from) editingCoverIndex = to;
+  else if (editingCoverIndex === to) editingCoverIndex = from;
+}
+
+function moveEditingImage(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= editingImages.length || to >= editingImages.length) return;
+  const [image] = editingImages.splice(from, 1);
+  editingImages.splice(to, 0, image);
+  if (editingCoverIndex === from) editingCoverIndex = to;
+  else if (from < editingCoverIndex && to >= editingCoverIndex) editingCoverIndex -= 1;
+  else if (from > editingCoverIndex && to <= editingCoverIndex) editingCoverIndex += 1;
+}
+
+function handleEditImagePointerDown(event) {
+  if (event.target.closest('button,input,label')) return;
+  const thumb = event.currentTarget;
+  draggingImageIndex = Number(thumb.dataset.imageIndex);
+  thumb.classList.add('dragging');
+  $('#imageEditor').classList.add('is-dragging');
+  const move = (moveEvent) => {
+    const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest('.edit-image-thumb');
+    if (!target || !$('#imageEditor').contains(target)) return;
+    const nextIndex = Number(target.dataset.imageIndex);
+    if (Number.isNaN(nextIndex) || nextIndex === draggingImageIndex) return;
+    swapEditingImages(draggingImageIndex, nextIndex);
+    draggingImageIndex = nextIndex;
+    renderEditImages();
+    document.querySelector(`[data-image-index="${draggingImageIndex}"]`)?.classList.add('dragging');
+  };
+  const up = () => {
+    draggingImageIndex = null;
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    document.removeEventListener('pointercancel', up);
+    renderEditImages();
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
+}
+
 function renderEditImages() {
   if (!editingId) return;
+  clampEditingCover();
   $('#imageEditor').innerHTML = `
     <div class="edit-image-panel">
+      <div class="edit-image-hint">拖动图片可调整顺序，点“设为封面”可选择卡片预览图</div>
       <div class="edit-image-grid">
         ${editingImages.map((image, index) => `
-          <div class="edit-image-thumb">
-            <img src="${imageSource(image)}" alt="当前图片 ${index + 1}">
+          <div class="edit-image-thumb ${index === editingCoverIndex ? 'cover-selected' : ''}" data-image-index="${index}" draggable="true">
+            <img src="${imageSource(image)}" alt="当前图片 ${index + 1}" draggable="false">
             <button type="button" class="remove-image" data-remove-image="${index}" aria-label="删除图片"><i data-lucide="x"></i></button>
+            <button type="button" class="cover-pick" data-cover-image="${index}" aria-label="设为预览封面">${index === editingCoverIndex ? '封面' : '设为封面'}</button>
           </div>
         `).join('')}
         <label class="add-image-tile" aria-label="新增图片">
@@ -268,9 +323,40 @@ function renderEditImages() {
   `;
   document.querySelectorAll('[data-remove-image]').forEach((button) => {
     button.onclick = () => {
-      editingImages.splice(Number(button.dataset.removeImage), 1);
+      const index = Number(button.dataset.removeImage);
+      editingImages.splice(index, 1);
+      if (editingCoverIndex === index) editingCoverIndex = 0;
+      else if (index < editingCoverIndex) editingCoverIndex -= 1;
       renderEditImages();
     };
+  });
+  document.querySelectorAll('[data-cover-image]').forEach((button) => {
+    button.onclick = () => {
+      editingCoverIndex = Number(button.dataset.coverImage);
+      renderEditImages();
+    };
+  });
+  document.querySelectorAll('.edit-image-thumb').forEach((thumb) => {
+    thumb.addEventListener('pointerdown', handleEditImagePointerDown);
+    thumb.addEventListener('dragstart', (event) => {
+      draggingImageIndex = Number(thumb.dataset.imageIndex);
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(draggingImageIndex));
+      requestAnimationFrame(() => thumb.classList.add('dragging'));
+    });
+    thumb.addEventListener('dragover', (event) => event.preventDefault());
+    thumb.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const from = Number(event.dataTransfer.getData('text/plain'));
+      const to = Number(thumb.dataset.imageIndex);
+      moveEditingImage(from, to);
+      draggingImageIndex = null;
+      renderEditImages();
+    });
+    thumb.addEventListener('dragend', () => {
+      draggingImageIndex = null;
+      renderEditImages();
+    });
   });
   const editImageInput = $('#editImageInput');
   editImageInput.onchange = async (event) => {
@@ -278,6 +364,7 @@ function renderEditImages() {
     if (!files.length) return;
     try {
       editingImages = [...editingImages, ...(await Promise.all(files.map(fileToData)))];
+      clampEditingCover();
       renderEditImages();
     } catch (error) {
       console.error(error);
@@ -291,6 +378,7 @@ function openEntry() {
   const form = $('#entryForm');
   editingId = null;
   editingImages = [];
+  editingCoverIndex = 0;
   form.reset();
   $('#entryEyebrow').textContent = 'NEW NOTE';
   $('#entryTitle').textContent = '添加提示词';
@@ -315,6 +403,7 @@ function openEditEntry() {
   $('#entryTitle').textContent = '编辑提示词';
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存修改';
   editingImages = [...(current.images || [])];
+  editingCoverIndex = coverIndexOf(current);
   revokePreviews();
   renderEditImages();
   closeDetail();
@@ -326,6 +415,7 @@ function closeEntry() {
   revokePreviews();
   if ($('#entryDialog').open) $('#entryDialog').close();
   editingImages = [];
+  editingCoverIndex = 0;
 }
 
 function openSettings() {
@@ -387,7 +477,8 @@ $('#entryForm').onsubmit = async (event) => {
       prompt: form.elements.prompt.value.trim(),
       favorite: Boolean(existing?.favorite),
       lastViewed: existing?.lastViewed || null,
-      images: existing ? editingImages : await Promise.all(files.map(fileToData))
+      images: existing ? editingImages : await Promise.all(files.map(fileToData)),
+      coverIndex: existing ? editingCoverIndex : 0
     };
     await putItem(item);
     if (existing) {
