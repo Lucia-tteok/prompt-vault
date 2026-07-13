@@ -11,7 +11,6 @@ let current = null;
 let previewUrls = [];
 let editingId = null;
 let editingImages = [];
-let editingCoverIndex = 0;
 let draggingImageIndex = null;
 
 const gallery = $('#gallery');
@@ -26,8 +25,8 @@ function imageSource(image) {
 }
 const displayDate = (value = '') => String(value).replaceAll('-', '.');
 const sameId = (left, right) => String(left) === String(right);
-const coverIndexOf = (item) => Math.min(Math.max(Number(item.coverIndex) || 0, 0), Math.max((item.images?.length || 1) - 1, 0));
-const coverImageOf = (item) => item.images?.[coverIndexOf(item)] || item.images?.[0] || '';
+const coverIndexOf = (item) => 0;
+const coverImageOf = (item) => item.images?.[0] || '';
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -254,24 +253,18 @@ function renderNewImagePicker() {
 }
 
 function clampEditingCover() {
-  editingCoverIndex = Math.min(Math.max(editingCoverIndex, 0), Math.max(editingImages.length - 1, 0));
-}
+  }
 
 function swapEditingImages(from, to) {
   if (from === to || from < 0 || to < 0 || from >= editingImages.length || to >= editingImages.length) return;
   [editingImages[from], editingImages[to]] = [editingImages[to], editingImages[from]];
-  if (editingCoverIndex === from) editingCoverIndex = to;
-  else if (editingCoverIndex === to) editingCoverIndex = from;
-}
+    }
 
 function moveEditingImage(from, to) {
   if (from === to || from < 0 || to < 0 || from >= editingImages.length || to >= editingImages.length) return;
   const [image] = editingImages.splice(from, 1);
   editingImages.splice(to, 0, image);
-  if (editingCoverIndex === from) editingCoverIndex = to;
-  else if (from < editingCoverIndex && to >= editingCoverIndex) editingCoverIndex -= 1;
-  else if (from > editingCoverIndex && to <= editingCoverIndex) editingCoverIndex += 1;
-}
+      }
 
 function handleEditImagePointerDown(event) {
   if (event.target.closest('button,input,label')) return;
@@ -306,13 +299,13 @@ function renderEditImages() {
   clampEditingCover();
   $('#imageEditor').innerHTML = `
     <div class="edit-image-panel">
-      <div class="edit-image-hint">拖动图片可调整顺序，点“设为封面”可选择卡片预览图</div>
+      <div class="edit-image-hint">拖动图片可调整顺序，默认第一张为卡片预览封面</div>
       <div class="edit-image-grid">
         ${editingImages.map((image, index) => `
-          <div class="edit-image-thumb ${index === editingCoverIndex ? 'cover-selected' : ''}" data-image-index="${index}" draggable="true">
+          <div class="edit-image-thumb ${index === 0 ? 'cover-selected' : ''}" data-image-index="${index}" draggable="true">
             <img src="${imageSource(image)}" alt="当前图片 ${index + 1}" draggable="false">
             <button type="button" class="remove-image" data-remove-image="${index}" aria-label="删除图片"><i data-lucide="x"></i></button>
-            <button type="button" class="cover-pick" data-cover-image="${index}" aria-label="设为预览封面">${index === editingCoverIndex ? '封面' : '设为封面'}</button>
+            
           </div>
         `).join('')}
         <label class="add-image-tile" aria-label="新增图片">
@@ -326,9 +319,7 @@ function renderEditImages() {
     button.onclick = () => {
       const index = Number(button.dataset.removeImage);
       editingImages.splice(index, 1);
-      if (editingCoverIndex === index) editingCoverIndex = 0;
-      else if (index < editingCoverIndex) editingCoverIndex -= 1;
-      renderEditImages();
+            renderEditImages();
     };
   });
   document.querySelectorAll('[data-cover-image]').forEach((button) => {
@@ -379,8 +370,7 @@ function openEntry() {
   const form = $('#entryForm');
   editingId = null;
   editingImages = [];
-  editingCoverIndex = 0;
-  form.reset();
+    form.reset();
   $('#entryEyebrow').textContent = 'NEW NOTE';
   $('#entryTitle').textContent = '添加提示词';
   renderNewImagePicker();
@@ -404,8 +394,7 @@ function openEditEntry() {
   $('#entryTitle').textContent = '编辑提示词';
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存修改';
   editingImages = [...(current.images || [])];
-  editingCoverIndex = coverIndexOf(current);
-  revokePreviews();
+    revokePreviews();
   renderEditImages();
   closeDetail();
   lucide.createIcons();
@@ -416,8 +405,7 @@ function closeEntry() {
   revokePreviews();
   if ($('#entryDialog').open) $('#entryDialog').close();
   editingImages = [];
-  editingCoverIndex = 0;
-}
+  }
 
 function openSettings() {
   requestAnimationFrame(() => $('#settingsDialog').showModal());
@@ -479,7 +467,7 @@ $('#entryForm').onsubmit = async (event) => {
       favorite: Boolean(existing?.favorite),
       lastViewed: existing?.lastViewed || null,
       images: existing ? editingImages : await Promise.all(files.map(fileToData)),
-      coverIndex: existing ? editingCoverIndex : 0
+      coverIndex: 0
     };
     await putItem(item);
     if (existing) {

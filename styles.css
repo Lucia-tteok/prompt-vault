@@ -14,7 +14,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: radial-gradient(circle at top left, #fff2e6 0, #fff8f0 320px, #f8f3e8 100%);
+  background: #fcfbf9;
   color: var(--text);
   font-family: 'Noto Sans SC', sans-serif;
   font-size: 14px;
