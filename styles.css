@@ -174,7 +174,8 @@ main { margin-left: var(--sidebar); min-height: 100vh; }
 }
 .mobile-menu { display: none; }
 
-.content { padding: 43px clamp(20px, 4vw, 52px) 70px; max-width: 1360px; margin: auto; }
+.page-head { padding: 38px clamp(20px, 4vw, 52px) 18px; max-width: 1360px; margin: auto; }
+.content { padding: 24px clamp(20px, 4vw, 52px) 70px; max-width: 1360px; margin: auto; }
 .heading-row { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .eyebrow { font: 500 10px 'DM Mono'; color: var(--accent); letter-spacing: .17em; margin: 0 0 7px; }
 h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }

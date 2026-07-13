@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=gallery-sort-edit-delete-1783953900">
-  <link rel="stylesheet" href="form.css?v=gallery-sort-edit-delete-1783953900">
+  <link rel="stylesheet" href="styles.css?v=head-search-swap-1783954700">
+  <link rel="stylesheet" href="form.css?v=head-search-swap-1783954700">
   <link rel="stylesheet" href="enhancements.css">
 </head>
 <body>
@@ -28,6 +28,16 @@
   </aside>
 
   <main>
+    <section class="page-head">
+      <div class="heading-row">
+        <div><p class="eyebrow">PROMPT NOTEBOOK</p><h1>全部作品</h1><p class="subtitle"><span id="resultCount">0</span> 组提示词与生成结果</p></div>
+        <div class="view-actions">
+          <select id="sortSelect" aria-label="排序方式"><option value="custom">手动排序</option><option value="newest">最近创建</option><option value="images">图片数量</option><option value="title">标题名称</option></select>
+          <button class="icon-btn selected" aria-label="网格视图"><i data-lucide="grid-2x2"></i></button>
+        </div>
+      </div>
+    </section>
+
     <header class="topbar">
       <button class="mobile-menu icon-btn" aria-label="打开菜单"><i data-lucide="menu"></i></button>
       <div class="search-wrap"><i data-lucide="search"></i><input id="searchInput" type="search" placeholder="搜索标题、提示词或标签…"></div>
@@ -36,13 +46,6 @@
     </header>
 
     <section class="content">
-      <div class="heading-row">
-        <div><p class="eyebrow">PROMPT NOTEBOOK</p><h1>全部作品</h1><p class="subtitle"><span id="resultCount">0</span> 组提示词与生成结果</p></div>
-        <div class="view-actions">
-          <select id="sortSelect" aria-label="排序方式"><option value="custom">手动排序</option><option value="newest">最近创建</option><option value="images">图片数量</option><option value="title">标题名称</option></select>
-          <button class="icon-btn selected" aria-label="网格视图"><i data-lucide="grid-2x2"></i></button>
-        </div>
-      </div>
       <div class="chips" id="chips"></div>
       <div class="gallery" id="gallery"></div>
       <div class="empty" id="empty"><i data-lucide="search-x"></i><h2>没有匹配结果</h2><p>试试其他关键词或标签</p></div>
@@ -77,6 +80,6 @@
   </dialog>
   <div class="toast" id="toast"><i data-lucide="check"></i><span>已复制到剪贴板</span></div>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="app.js?v=gallery-sort-edit-delete-1783953900"></script>
+  <script src="app.js?v=head-search-swap-1783954700"></script>
 </body>
 </html>
