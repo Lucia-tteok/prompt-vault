@@ -9,6 +9,7 @@ let activeTag = '全部';
 let mode = 'all';
 let current = null;
 let previewUrls = [];
+let newImageFiles = [];
 let editingId = null;
 let editingImages = [];
 let draggingImageIndex = null;
@@ -234,21 +235,130 @@ function revokePreviews() {
   previewUrls = [];
 }
 
+function resetNewImages() {
+  revokePreviews();
+  newImageFiles = [];
+}
+
+function addNewImageFiles(files) {
+  const accepted = [...files].filter((file) => file.type.startsWith('image/'));
+  newImageFiles = [...newImageFiles, ...accepted];
+  previewUrls = [...previewUrls, ...accepted.map((file) => URL.createObjectURL(file))];
+}
+
+function swapNewImages(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= newImageFiles.length || to >= newImageFiles.length) return;
+  [newImageFiles[from], newImageFiles[to]] = [newImageFiles[to], newImageFiles[from]];
+  [previewUrls[from], previewUrls[to]] = [previewUrls[to], previewUrls[from]];
+}
+
+function moveNewImage(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= newImageFiles.length || to >= newImageFiles.length) return;
+  const [file] = newImageFiles.splice(from, 1);
+  const [url] = previewUrls.splice(from, 1);
+  newImageFiles.splice(to, 0, file);
+  previewUrls.splice(to, 0, url);
+}
+
+function handleNewImagePointerDown(event) {
+  if (event.target.closest('button,input,label')) return;
+  const thumb = event.currentTarget;
+  draggingImageIndex = Number(thumb.dataset.newImageIndex);
+  thumb.classList.add('dragging');
+  $('#imageEditor').classList.add('is-dragging');
+  const move = (moveEvent) => {
+    const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest('.new-image-thumb');
+    if (!target || !$('#imageEditor').contains(target)) return;
+    const nextIndex = Number(target.dataset.newImageIndex);
+    if (Number.isNaN(nextIndex) || nextIndex === draggingImageIndex) return;
+    swapNewImages(draggingImageIndex, nextIndex);
+    draggingImageIndex = nextIndex;
+    renderNewUploadPreview();
+    document.querySelector(`[data-new-image-index="${draggingImageIndex}"]`)?.classList.add('dragging');
+  };
+  const up = () => {
+    draggingImageIndex = null;
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    document.removeEventListener('pointercancel', up);
+    renderNewUploadPreview();
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
+}
+
+function renderNewUploadPreview() {
+  const preview = $('#uploadPreview');
+  if (!preview) return;
+  if (!newImageFiles.length) {
+    preview.innerHTML = '';
+    lucide.createIcons();
+    return;
+  }
+  preview.innerHTML = `
+    <div class="edit-image-panel">
+      <div class="edit-image-hint">拖动预览图可调整顺序，点右上角可删除；第一张会自动作为卡片封面</div>
+      <div class="edit-image-grid">
+        ${previewUrls.map((url, index) => `
+          <div class="edit-image-thumb new-image-thumb ${index === 0 ? 'cover-selected' : ''}" data-new-image-index="${index}" draggable="true">
+            <img src="${url}" alt="待上传图片 ${index + 1}" draggable="false">
+            <button type="button" class="remove-image" data-remove-new-image="${index}" aria-label="删除预览图"><i data-lucide="x"></i></button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.querySelectorAll('[data-remove-new-image]').forEach((button) => {
+    button.onclick = () => {
+      const index = Number(button.dataset.removeNewImage);
+      const [url] = previewUrls.splice(index, 1);
+      if (url) URL.revokeObjectURL(url);
+      newImageFiles.splice(index, 1);
+      renderNewUploadPreview();
+    };
+  });
+  document.querySelectorAll('.new-image-thumb').forEach((thumb) => {
+    thumb.addEventListener('pointerdown', handleNewImagePointerDown);
+    thumb.addEventListener('dragstart', (event) => {
+      draggingImageIndex = Number(thumb.dataset.newImageIndex);
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(draggingImageIndex));
+      requestAnimationFrame(() => thumb.classList.add('dragging'));
+    });
+    thumb.addEventListener('dragover', (event) => event.preventDefault());
+    thumb.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const from = Number(event.dataTransfer.getData('text/plain'));
+      const to = Number(thumb.dataset.newImageIndex);
+      moveNewImage(from, to);
+      draggingImageIndex = null;
+      renderNewUploadPreview();
+    });
+    thumb.addEventListener('dragend', () => {
+      draggingImageIndex = null;
+      renderNewUploadPreview();
+    });
+  });
+  lucide.createIcons();
+}
+
 function renderNewImagePicker() {
   $('#imageEditor').innerHTML = `
     <label class="upload-zone" id="uploadZone">
       <input id="imageInput" name="images" type="file" accept="image/*" multiple>
       <i data-lucide="image-plus"></i>
       <strong>选择生成图片</strong>
-      <span>支持一次选择多张 JPG、PNG 或 WEBP</span>
+      <span>支持一次选择多张 JPG、PNG 或 WEBP，选择后可拖动排序或单张删除</span>
     </label>
-    <div id="uploadPreview" class="upload-preview"></div>
+    <div id="uploadPreview" class="upload-preview sortable-preview"></div>
   `;
   $('#imageInput').onchange = (event) => {
-    revokePreviews();
-    previewUrls = [...event.target.files].map((file) => URL.createObjectURL(file));
-    $('#uploadPreview').innerHTML = previewUrls.map((url, index) => `<img src="${url}" alt="待上传图片 ${index + 1}">`).join('');
+    addNewImageFiles(event.target.files);
+    event.target.value = '';
+    renderNewUploadPreview();
   };
+  renderNewUploadPreview();
   lucide.createIcons();
 }
 
@@ -322,12 +432,6 @@ function renderEditImages() {
             renderEditImages();
     };
   });
-  document.querySelectorAll('[data-cover-image]').forEach((button) => {
-    button.onclick = () => {
-      editingCoverIndex = Number(button.dataset.coverImage);
-      renderEditImages();
-    };
-  });
   document.querySelectorAll('.edit-image-thumb').forEach((thumb) => {
     thumb.addEventListener('pointerdown', handleEditImagePointerDown);
     thumb.addEventListener('dragstart', (event) => {
@@ -370,13 +474,13 @@ function openEntry() {
   const form = $('#entryForm');
   editingId = null;
   editingImages = [];
-    form.reset();
+  resetNewImages();
+  form.reset();
   $('#entryEyebrow').textContent = 'NEW NOTE';
   $('#entryTitle').textContent = '添加提示词';
   renderNewImagePicker();
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存条目';
   form.elements.date.value = new Date().toISOString().slice(0, 10);
-  revokePreviews();
   lucide.createIcons();
   requestAnimationFrame(() => $('#entryDialog').showModal());
 }
@@ -402,7 +506,7 @@ function openEditEntry() {
 }
 
 function closeEntry() {
-  revokePreviews();
+  resetNewImages();
   if ($('#entryDialog').open) $('#entryDialog').close();
   editingImages = [];
   }
@@ -440,9 +544,7 @@ function closeMobileMenu() {
 $('#entryForm').onsubmit = async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
-  const imageInput = form.elements.images;
-  const files = imageInput ? [...imageInput.files] : [];
-  if (!files.length && !editingId) {
+  if (!newImageFiles.length && !editingId) {
     toast('请至少选择一张图片');
     return;
   }
@@ -466,7 +568,7 @@ $('#entryForm').onsubmit = async (event) => {
       prompt: form.elements.prompt.value.trim(),
       favorite: Boolean(existing?.favorite),
       lastViewed: existing?.lastViewed || null,
-      images: existing ? editingImages : await Promise.all(files.map(fileToData)),
+      images: existing ? editingImages : await Promise.all(newImageFiles.map(fileToData)),
       coverIndex: 0
     };
     await putItem(item);

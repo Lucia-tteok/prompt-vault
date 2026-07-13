@@ -82,3 +82,49 @@
   transform: scale(1.05) rotate(2deg) !important;
   box-shadow: 6px 6px 0 var(--accent-soft) !important;
 }
+
+
+/* 新建条目图片预览：可拖动排序 / 单张删除 */
+.sortable-preview {
+  display: block !important;
+  padding-top: 6px;
+}
+.sortable-preview .edit-image-panel {
+  padding: 10px;
+  border: 2px dashed rgba(91, 163, 113, .45);
+  border-radius: 14px;
+  background: rgba(247, 252, 244, .72);
+}
+.sortable-preview .edit-image-hint {
+  color: var(--muted);
+  line-height: 1.55;
+}
+.new-image-thumb::after {
+  content: "拖动";
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .86);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: 0 3px 10px rgba(60, 79, 66, .12);
+  pointer-events: none;
+}
+.new-image-thumb.cover-selected::before {
+  content: "封面";
+  position: absolute;
+  left: -6px;
+  top: -8px;
+  z-index: 2;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: 0 5px 12px rgba(91, 163, 113, .28);
+  pointer-events: none;
+}
