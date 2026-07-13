@@ -505,3 +505,139 @@ body.dark { --bg:#171916; --panel:#22241f; --text:#f0f1ec; --muted:#999d94; --li
   border-radius: 4px;
   border: 1px solid var(--accent);
 }
+
+
+/* =========================================
+   MASSIVE KAWAII SCRAPBOOK OVERRIDE 
+   ========================================= */
+:root {
+  --bg: #ffeaf1 !important;
+  --panel: #fffdf9 !important;
+  --text: #705460 !important;
+  --muted: #b598a4 !important;
+  --line: #ffb3c6 !important;
+  --accent: #ff4d85 !important;
+  --accent-soft: #ffccd8 !important;
+}
+
+/* 强烈的粉色大网格背景和手写字体 */
+body {
+  background-color: var(--bg) !important;
+  background-image:
+    linear-gradient(var(--line) 2px, transparent 2px),
+    linear-gradient(90deg, var(--line) 2px, transparent 2px) !important;
+  background-size: 35px 35px !important; /* 明显的网格 */
+  font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', cursive !important;
+  letter-spacing: 1px !important;
+}
+
+/* 侧边栏变成有缝线的剪贴纸 */
+.sidebar {
+  background: var(--panel) !important;
+  border-right: 5px dashed var(--accent) !important;
+  box-shadow: 8px 0 25px rgba(255, 77, 133, 0.15) !important;
+}
+
+/* Logo 变可爱 */
+.brand-mark {
+  background: var(--accent) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  border: 3px solid var(--accent-soft) !important;
+  transform: rotate(-10deg) !important;
+}
+
+/* 标题变成手账贴纸风格 */
+.heading-row h1 {
+  font-size: 36px !important;
+  color: var(--accent) !important;
+  text-shadow: 3px 3px 0px #fff, 6px 6px 0px var(--line) !important;
+  transform: rotate(-3deg) !important;
+  padding: 10px !important;
+}
+
+/* 新建按钮变成贴纸 */
+.add-btn {
+  background: var(--accent) !important;
+  color: white !important;
+  border: 3px dashed #fff !important;
+  border-radius: 25px !important;
+  box-shadow: 4px 4px 0 var(--line) !important;
+  transform: rotate(3deg) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  font-size: 16px !important;
+  padding: 10px 20px !important;
+}
+.add-btn:hover {
+  transform: rotate(-3deg) scale(1.1) !important;
+  box-shadow: 6px 6px 0 var(--accent-soft) !important;
+}
+
+/* 画廊网格间距拉大，给错落布局留空间 */
+.gallery {
+  gap: 35px !important;
+  padding: 30px 10px !important;
+}
+
+/* 卡片变成拍立得相纸形式！下边距大，白色边框厚 */
+.card {
+  background: #ffffff !important;
+  padding: 12px 12px 40px 12px !important;
+  border-radius: 4px !important;
+  box-shadow: 5px 10px 20px rgba(255, 77, 133, 0.2) !important;
+  border: 1px solid #ffeaf1 !important;
+  position: relative !important;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* 让所有卡片错落分布，像散落在桌面上的照片 */
+.card:nth-child(2n) { transform: rotate(5deg) translateY(10px) !important; }
+.card:nth-child(3n) { transform: rotate(-6deg) translateY(-15px) !important; }
+.card:nth-child(4n) { transform: rotate(3deg) translateY(5px) !important; }
+.card:nth-child(5n) { transform: rotate(-4deg) translateY(12px) !important; }
+
+.card:hover {
+  transform: scale(1.08) translateY(-15px) rotate(0deg) !important;
+  box-shadow: 8px 15px 30px rgba(255, 77, 133, 0.3) !important;
+  z-index: 100 !important;
+}
+
+/* 逼真的胶带粘在顶部 */
+.card::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -15px !important;
+  left: 50% !important;
+  transform: translateX(-50%) rotate(-5deg) !important;
+  width: 90px !important;
+  height: 35px !important;
+  background: rgba(255, 182, 193, 0.75) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+  z-index: 10 !important;
+  border-left: 4px dotted rgba(255, 77, 133, 0.5) !important;
+  border-right: 4px dotted rgba(255, 77, 133, 0.5) !important;
+}
+
+/* 卡片图片加内框 */
+.cover {
+  border: 2px dashed var(--accent-soft) !important;
+  border-radius: 4px !important;
+}
+
+/* 卡片标题居中并改色 */
+.card-title {
+  font-size: 20px !important;
+  text-align: center !important;
+  margin-top: 15px !important;
+  color: var(--accent) !important;
+  font-weight: bold !important;
+}
+
+/* 标签变成可爱的边框框 */
+.mini-tag {
+  background: transparent !important;
+  border: 2px dashed var(--accent) !important;
+  border-radius: 12px !important;
+  padding: 4px 10px !important;
+  font-weight: bold !important;
+}
