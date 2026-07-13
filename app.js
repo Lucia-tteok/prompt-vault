@@ -74,8 +74,15 @@ function tags() {
   return ['全部', ...new Set(items.map((item) => item.tag).filter(Boolean))];
 }
 
+function renderTagOptions(tagList = tags()) {
+  const datalist = $('#tagOptions');
+  if (!datalist) return;
+  datalist.innerHTML = tagList.slice(1).map((tag) => `<option value="${escapeHtml(tag)}"></option>`).join('');
+}
+
 function renderTags() {
   const tagList = tags();
+  renderTagOptions(tagList);
   const colors = ['#db6548', '#66a17b', '#5d82b4', '#c99a43', '#8b70b7'];
   if (!tagList.includes(activeTag)) activeTag = '全部';
   $('#chips').innerHTML = tagList.map((tag) =>
@@ -219,7 +226,7 @@ async function openDetail(id) {
     <div class="detail-tags"><span class="detail-tag">${escapeHtml(current.tag)}</span><span class="detail-tag">${current.images.length} 张结果</span></div>
     <div class="section-label"><span>正向提示词</span><button class="copy-btn" data-copy="prompt"><i data-lucide="copy"></i>复制</button></div>
     <div class="prompt-box">${escapeHtml(current.prompt)}</div>
-    <div class="section-label"><span>生成结果 · ${current.images.length}</span><button class="copy-btn delete-entry" id="deleteEntry"><i data-lucide="trash-2"></i>删除条目</button></div>
+    <div class="section-label"><span>生成结果 · ${current.images.length}</span></div>
     <div class="result-grid">${current.images.map((image, index) => `<img src="${image}" alt="${escapeHtml(current.title)} 生成结果 ${index + 1}" data-image="${index}">`).join('')}</div>
   </div>`;
   $('#detail').classList.add('open');
@@ -232,7 +239,6 @@ async function openDetail(id) {
   document.querySelectorAll('[data-image]').forEach((image) => {
     image.onclick = () => showImage(Number(image.dataset.image));
   });
-  $('#deleteEntry').onclick = deleteCurrentEntry;
   lucide.createIcons();
 }
 

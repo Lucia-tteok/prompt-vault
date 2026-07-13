@@ -252,63 +252,65 @@ h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }
   position: fixed;
   left: 50%;
   top: 50%;
-  width: min(760px, calc(100% - 32px));
+  width: min(780px, calc(100% - 32px));
   max-height: 88vh;
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 4px dashed var(--accent);
+  border-radius: 22px;
   z-index: 40;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -47%) scale(.98);
+  transform: translate(-50%, -47%) scale(.98) rotate(-.6deg);
   transition: opacity .22s ease, transform .22s ease;
   overflow: auto;
-  box-shadow: 0 24px 70px rgba(93, 74, 55, .24);
+  box-shadow: 14px 14px 0 var(--accent-soft), 0 24px 70px rgba(60, 79, 66, .26);
 }
-.detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+.detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1) rotate(-.6deg); }
 .detail-head {
   height: 67px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px dashed var(--line);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
   position: sticky;
   top: 0;
-  background: rgba(255, 253, 248, .95);
+  background: rgba(247, 252, 244, .96);
   z-index: 2;
 }
 .detail-head-actions { display: flex; gap: 8px; }
 .detail-body {
   margin: 0;
+  padding: 24px;
   background-color: var(--bg);
   background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 20px 20px; /* 方格纸背景 */
+    linear-gradient(rgba(151, 184, 145, .28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(151, 184, 145, .28) 1px, transparent 1px);
+  background-size: 20px 20px;
   color: var(--text);
   font-family: var(--font-hand);
   font-size: 14px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
-.detail-title { font-size: 25px; margin: 0 0 9px; }
-.detail-date { color: var(--muted); font-size: 12px; }
-.detail-tags { display: flex; gap: 7px; margin: 18px 0 28px; }
-.detail-tag { font-size: 12px; background: #fff1e6; padding: 5px 9px; border-radius: 5px; }
-.section-label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; margin: 26px 0 10px; }
-.copy-btn { border: 0; background: transparent; color: var(--accent); display: flex; gap: 5px; align-items: center; cursor: pointer; font-weight: 600; }
+.detail-title { font-size: 26px; margin: 0 0 9px; line-height: 1.25; }
+.detail-date { color: var(--muted); font-size: 12px; font-weight: 700; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 28px; }
+.detail-tag { font-size: 12px; background: #f4fbef; border: 2px dashed rgba(91, 163, 113, .35); padding: 6px 10px; border-radius: 999px; color: #46664f; font-weight: 900; }
+.section-label { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; font-weight: 900; margin: 26px 0 10px; color: #46664f; }
+.copy-btn { border: 2px dashed rgba(91, 163, 113, .38); background: #fbfef8; color: var(--accent); border-radius: 999px; padding: 7px 10px; display: flex; gap: 5px; align-items: center; cursor: pointer; font-weight: 900; box-shadow: 3px 3px 0 rgba(91, 163, 113, .12); }
 .copy-btn svg { width: 14px; }
 .prompt-box {
-  background: #fffaf3;
-  border: 1px dashed #e6cdbd;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, .86);
+  border: 2px dashed rgba(91, 163, 113, .38);
+  border-radius: 14px;
   padding: 16px;
   font: 400 12px/1.75 'DM Mono';
-  color: #594b45;
+  color: #405342;
   word-break: break-word;
+  box-shadow: 5px 5px 0 rgba(91, 163, 113, .12);
 }
-.result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 150px)); gap: 8px; justify-content: start; }
-.result-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; cursor: zoom-in; border: 1px solid var(--line); }
+.result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 150px)); gap: 12px; justify-content: start; }
+.result-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; cursor: zoom-in; border: 3px solid #fff; outline: 2px dashed rgba(91, 163, 113, .34); box-shadow: 5px 5px 0 rgba(91, 163, 113, .12); background: #fff; }
 
 dialog { border: 0; padding: 0; background: transparent; max-width: 90vw; max-height: 92vh; overflow: visible; }
 dialog::backdrop { background: rgba(8, 9, 8, .92); }

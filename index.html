@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=head-search-swap-1783954700">
-  <link rel="stylesheet" href="form.css?v=head-search-swap-1783954700">
+  <link rel="stylesheet" href="styles.css?v=detail-tags-preview-1783955300">
+  <link rel="stylesheet" href="form.css?v=detail-tags-preview-1783955300">
   <link rel="stylesheet" href="enhancements.css">
 </head>
 <body>
@@ -72,7 +72,7 @@
     <form id="entryForm">
       <div class="form-head"><div><p class="eyebrow" id="entryEyebrow">NEW NOTE</p><h2 id="entryTitle">添加提示词</h2></div><button type="button" class="icon-btn" id="closeEntry" aria-label="关闭"><i data-lucide="x"></i></button></div>
       <label>标题<input name="title" required maxlength="80" placeholder="例如：月下的银发魔女"></label>
-      <div class="form-row"><label>标签<input name="tag" maxlength="30" placeholder="角色立绘"></label><label>生成日期<input name="date" type="date"></label></div>
+      <div class="form-row"><label>标签<input name="tag" list="tagOptions" maxlength="30" placeholder="选择已有标签或输入新标签"><datalist id="tagOptions"></datalist></label><label>生成日期<input name="date" type="date"></label></div>
       <label>正向提示词<textarea name="prompt" required rows="7" placeholder="masterpiece, best quality, 1girl..."></textarea></label>
       <div id="imageEditor"></div>
       <div class="form-actions"><button type="button" class="delete-edit-btn" id="deleteEditingEntry"><i data-lucide="trash-2"></i>删除条目</button><span class="form-action-spacer"></span><button type="button" class="cancel-btn" id="cancelEntry">取消</button><button type="submit" class="save-btn"><i data-lucide="save"></i>保存条目</button></div>
@@ -80,6 +80,6 @@
   </dialog>
   <div class="toast" id="toast"><i data-lucide="check"></i><span>已复制到剪贴板</span></div>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="app.js?v=head-search-swap-1783954700"></script>
+  <script src="app.js?v=detail-tags-preview-1783955300"></script>
 </body>
 </html>
