@@ -10,6 +10,7 @@ let mode = 'all';
 let current = null;
 let previewUrls = [];
 let editingId = null;
+let editingImages = [];
 
 const gallery = $('#gallery');
 const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (char) => ({
@@ -229,18 +230,74 @@ function revokePreviews() {
   previewUrls = [];
 }
 
+function renderNewImagePicker() {
+  $('#imageEditor').innerHTML = `
+    <label class="upload-zone" id="uploadZone">
+      <input id="imageInput" name="images" type="file" accept="image/*" multiple>
+      <i data-lucide="image-plus"></i>
+      <strong>选择生成图片</strong>
+      <span>支持一次选择多张 JPG、PNG 或 WEBP</span>
+    </label>
+    <div id="uploadPreview" class="upload-preview"></div>
+  `;
+  $('#imageInput').onchange = (event) => {
+    revokePreviews();
+    previewUrls = [...event.target.files].map((file) => URL.createObjectURL(file));
+    $('#uploadPreview').innerHTML = previewUrls.map((url, index) => `<img src="${url}" alt="待上传图片 ${index + 1}">`).join('');
+  };
+  lucide.createIcons();
+}
+
+function renderEditImages() {
+  if (!editingId) return;
+  $('#imageEditor').innerHTML = `
+    <div class="edit-image-panel">
+      <div class="edit-image-grid">
+        ${editingImages.map((image, index) => `
+          <div class="edit-image-thumb">
+            <img src="${imageSource(image)}" alt="当前图片 ${index + 1}">
+            <button type="button" class="remove-image" data-remove-image="${index}" aria-label="删除图片"><i data-lucide="x"></i></button>
+          </div>
+        `).join('')}
+        <label class="add-image-tile" aria-label="新增图片">
+          <input id="editImageInput" type="file" accept="image/*" multiple>
+          <i data-lucide="plus"></i>
+        </label>
+      </div>
+    </div>
+  `;
+  document.querySelectorAll('[data-remove-image]').forEach((button) => {
+    button.onclick = () => {
+      editingImages.splice(Number(button.dataset.removeImage), 1);
+      renderEditImages();
+    };
+  });
+  const editImageInput = $('#editImageInput');
+  editImageInput.onchange = async (event) => {
+    const files = [...event.target.files];
+    if (!files.length) return;
+    try {
+      editingImages = [...editingImages, ...(await Promise.all(files.map(fileToData)))];
+      renderEditImages();
+    } catch (error) {
+      console.error(error);
+      toast('图片读取失败');
+    }
+  };
+  lucide.createIcons();
+}
+
 function openEntry() {
   const form = $('#entryForm');
   editingId = null;
+  editingImages = [];
   form.reset();
   $('#entryEyebrow').textContent = 'NEW NOTE';
   $('#entryTitle').textContent = '添加提示词';
-  $('#uploadTitle').textContent = '选择生成图片';
-  $('#uploadHint').textContent = '支持一次选择多张 JPG、PNG 或 WEBP';
+  renderNewImagePicker();
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存条目';
   form.elements.date.value = new Date().toISOString().slice(0, 10);
   revokePreviews();
-  $('#uploadPreview').innerHTML = '';
   lucide.createIcons();
   requestAnimationFrame(() => $('#entryDialog').showModal());
 }
@@ -256,13 +313,10 @@ function openEditEntry() {
   form.elements.prompt.value = current.prompt || '';
   $('#entryEyebrow').textContent = 'EDIT NOTE';
   $('#entryTitle').textContent = '编辑提示词';
-  $('#uploadTitle').textContent = '替换生成图片';
-  $('#uploadHint').textContent = '不重新选择图片时，会保留原来的图片';
   form.querySelector('.save-btn').innerHTML = '<i data-lucide="save"></i>保存修改';
+  editingImages = [...(current.images || [])];
   revokePreviews();
-  $('#uploadPreview').innerHTML = (current.images || []).slice(0, 6).map((image, index) =>
-    `<img src="${imageSource(image)}" alt="当前图片 ${index + 1}">`
-  ).join('');
+  renderEditImages();
   closeDetail();
   lucide.createIcons();
   requestAnimationFrame(() => $('#entryDialog').showModal());
@@ -271,6 +325,7 @@ function openEditEntry() {
 function closeEntry() {
   revokePreviews();
   if ($('#entryDialog').open) $('#entryDialog').close();
+  editingImages = [];
 }
 
 function openSettings() {
@@ -303,18 +358,17 @@ function closeMobileMenu() {
   $('.sidebar').classList.remove('open');
 }
 
-$('#imageInput').onchange = (event) => {
-  revokePreviews();
-  previewUrls = [...event.target.files].map((file) => URL.createObjectURL(file));
-  $('#uploadPreview').innerHTML = previewUrls.map((url, index) => `<img src="${url}" alt="待上传图片 ${index + 1}">`).join('');
-};
-
 $('#entryForm').onsubmit = async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
-  const files = [...form.elements.images.files];
+  const imageInput = form.elements.images;
+  const files = imageInput ? [...imageInput.files] : [];
   if (!files.length && !editingId) {
     toast('请至少选择一张图片');
+    return;
+  }
+  if (editingId && !editingImages.length) {
+    toast('请至少保留一张图片');
     return;
   }
   const submitButton = form.querySelector('[type="submit"]');
@@ -333,7 +387,7 @@ $('#entryForm').onsubmit = async (event) => {
       prompt: form.elements.prompt.value.trim(),
       favorite: Boolean(existing?.favorite),
       lastViewed: existing?.lastViewed || null,
-      images: files.length ? await Promise.all(files.map(fileToData)) : existing.images
+      images: existing ? editingImages : await Promise.all(files.map(fileToData))
     };
     await putItem(item);
     if (existing) {

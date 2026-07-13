@@ -295,8 +295,8 @@ h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 700; }
   color: #594b45;
   word-break: break-word;
 }
-.result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.result-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; cursor: zoom-in; }
+.result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 150px)); gap: 8px; justify-content: start; }
+.result-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; cursor: zoom-in; border: 1px solid var(--line); }
 
 dialog { border: 0; padding: 0; background: transparent; max-width: 90vw; max-height: 92vh; overflow: visible; }
 dialog::backdrop { background: rgba(8, 9, 8, .92); }

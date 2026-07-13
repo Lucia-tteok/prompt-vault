@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2335d5f">
-  <link rel="stylesheet" href="form.css">
+  <link rel="stylesheet" href="styles.css?v=20260713-image-edit">
+  <link rel="stylesheet" href="form.css?v=20260713-image-edit">
   <link rel="stylesheet" href="enhancements.css">
 </head>
 <body>
@@ -70,13 +70,12 @@
       <label>标题<input name="title" required maxlength="80" placeholder="例如：月下的银发魔女"></label>
       <div class="form-row"><label>标签<input name="tag" maxlength="30" placeholder="角色立绘"></label><label>生成日期<input name="date" type="date"></label></div>
       <label>正向提示词<textarea name="prompt" required rows="7" placeholder="masterpiece, best quality, 1girl..."></textarea></label>
-      <label class="upload-zone" id="uploadZone"><input id="imageInput" name="images" type="file" accept="image/*" multiple><i data-lucide="image-plus"></i><strong id="uploadTitle">选择生成图片</strong><span id="uploadHint">支持一次选择多张 JPG、PNG 或 WEBP</span></label>
-      <div id="uploadPreview" class="upload-preview"></div>
+      <div id="imageEditor"></div>
       <div class="form-actions"><button type="button" class="cancel-btn" id="cancelEntry">取消</button><button type="submit" class="save-btn"><i data-lucide="save"></i>保存条目</button></div>
     </form>
   </dialog>
   <div class="toast" id="toast"><i data-lucide="check"></i><span>已复制到剪贴板</span></div>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="app.js?v=2335d5f"></script>
+  <script src="app.js?v=20260713-image-edit"></script>
 </body>
 </html>
