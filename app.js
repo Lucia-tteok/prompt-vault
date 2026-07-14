@@ -75,9 +75,64 @@ function tags() {
 }
 
 function renderTagOptions(tagList = tags()) {
-  const datalist = $('#tagOptions');
-  if (!datalist) return;
-  datalist.innerHTML = tagList.slice(1).map((tag) => `<option value="${escapeHtml(tag)}"></option>`).join('');
+  const optionsList = $('#tagOptionsList');
+  if (!optionsList) return;
+  const options = tagList.slice(1).filter(Boolean);
+  if (!options.length) {
+    optionsList.innerHTML = '<button type="button" class="custom-option empty" disabled>暂无标签</button>';
+    return;
+  }
+  optionsList.innerHTML = options.map((tag) =>
+    `<button type="button" class="custom-option" data-value="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`
+  ).join('');
+  optionsList.querySelectorAll('.custom-option[data-value]').forEach((option) => {
+    option.onclick = () => {
+      const tagInput = $('#tagInput');
+      if (tagInput) {
+        tagInput.value = option.dataset.value || '';
+        tagInput.focus();
+      }
+      optionsList.classList.remove('show');
+    };
+  });
+}
+
+function bindTagDropdown() {
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  const wrapper = document.querySelector('.custom-select-wrapper');
+  if (!tagInput || !tagOptionsList || !selectArrow || !wrapper || tagInput.dataset.dropdownBound === 'true') return;
+  tagInput.dataset.dropdownBound = 'true';
+
+  const openDropdown = () => {
+    renderTagOptions(tags());
+    tagOptionsList.classList.add('show');
+  };
+  const toggleDropdown = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (tagOptionsList.classList.contains('show')) {
+      tagOptionsList.classList.remove('show');
+    } else {
+      openDropdown();
+    }
+  };
+
+  tagInput.addEventListener('click', toggleDropdown);
+  selectArrow.addEventListener('click', toggleDropdown);
+  tagInput.addEventListener('focus', openDropdown);
+  tagInput.addEventListener('input', () => {
+    const keyword = tagInput.value.trim().toLocaleLowerCase('zh-CN');
+    const filtered = keyword
+      ? ['全部', ...tags().slice(1).filter((tag) => tag.toLocaleLowerCase('zh-CN').includes(keyword))]
+      : tags();
+    renderTagOptions(filtered);
+    tagOptionsList.classList.add('show');
+  });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.custom-select-wrapper')) tagOptionsList.classList.remove('show');
+  });
 }
 
 function renderTags() {
@@ -95,30 +150,6 @@ function renderTags() {
     button.onclick = () => {
       activeTag = button.dataset.tag;
       renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
 
       render();
       closeMobileMenu();
@@ -171,30 +202,6 @@ async function moveGalleryCard(fromId, toId) {
   items = [...visible, ...hidden];
   await persistAllItemOrder(items);
   renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
 
   render();
   toast('排序已保存');
@@ -308,30 +315,6 @@ async function deleteCurrentEntry() {
   current = null;
   closeDetail();
   renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
 
   render();
   toast('条目已删除');
@@ -544,30 +527,7 @@ async function importDataFile(file) {
     $('#sortSelect').value = 'custom';
     activeTag = '全部';
     renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
+    bindTagDropdown();
 
     render();
     toast(`已导入 ${incoming.length} 条数据`);
@@ -885,30 +845,6 @@ async function deleteEditingEntry() {
   closeEntry();
   closeDetail({ clear: true });
   renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
 
   render();
   toast('条目已删除');
@@ -923,30 +859,6 @@ async function clearAllData() {
   closeDetail({ clear: true });
   closeSettings();
   renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
 
   render();
   toast('本地数据已清空');
@@ -1003,30 +915,7 @@ $('#entryForm').onsubmit = async (event) => {
     closeEntry();
     activeTag = '全部';
     renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
+    bindTagDropdown();
 
     render();
     toast(existing ? '修改已保存' : '条目已保存');
@@ -1112,30 +1001,7 @@ async function init() {
       await persistAllItemOrder(items);
     }
     renderTags();
-  // Custom tag dropdown logic
-  const tagInput = $('#tagInput');
-  const tagOptionsList = $('#tagOptionsList');
-  const selectArrow = document.querySelector('.select-arrow');
-  
-  if (tagInput && tagOptionsList && selectArrow) {
-    const toggleDropdown = (e) => {
-      e.stopPropagation();
-      tagOptionsList.classList.toggle('show');
-      if(tagOptionsList.classList.contains('show')) {
-        renderTagOptions(tags());
-      }
-    };
-    
-    tagInput.addEventListener('click', toggleDropdown);
-    selectArrow.addEventListener('click', toggleDropdown);
-    
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-select-wrapper')) {
-        tagOptionsList.classList.remove('show');
-      }
-    });
-  }
+    bindTagDropdown();
 
     render();
   } catch (error) {

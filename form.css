@@ -235,6 +235,11 @@
   display: block;
 }
 .custom-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
   padding: 10px 15px;
   font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', cursive;
   font-size: 15px;
@@ -247,12 +252,15 @@
   color: var(--accent);
   padding-left: 20px;
 }
-.custom-option.no-options {
+.custom-option.empty,
+.custom-option:disabled {
   cursor: default;
   color: var(--muted);
 }
-.custom-option.no-options:hover {
+.custom-option.empty:hover,
+.custom-option:disabled:hover {
   background: none;
+  color: var(--muted);
   padding-left: 15px;
 }
 
