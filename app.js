@@ -95,6 +95,31 @@ function renderTags() {
     button.onclick = () => {
       activeTag = button.dataset.tag;
       renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
       render();
       closeMobileMenu();
     };
@@ -146,6 +171,31 @@ async function moveGalleryCard(fromId, toId) {
   items = [...visible, ...hidden];
   await persistAllItemOrder(items);
   renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
   render();
   toast('排序已保存');
 }
@@ -258,6 +308,31 @@ async function deleteCurrentEntry() {
   current = null;
   closeDetail();
   renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
   render();
   toast('条目已删除');
 }
@@ -469,6 +544,31 @@ async function importDataFile(file) {
     $('#sortSelect').value = 'custom';
     activeTag = '全部';
     renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
     render();
     toast(`已导入 ${incoming.length} 条数据`);
   } catch (error) {
@@ -785,6 +885,31 @@ async function deleteEditingEntry() {
   closeEntry();
   closeDetail({ clear: true });
   renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
   render();
   toast('条目已删除');
 }
@@ -798,6 +923,31 @@ async function clearAllData() {
   closeDetail({ clear: true });
   closeSettings();
   renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
   render();
   toast('本地数据已清空');
 }
@@ -853,6 +1003,31 @@ $('#entryForm').onsubmit = async (event) => {
     closeEntry();
     activeTag = '全部';
     renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
     render();
     toast(existing ? '修改已保存' : '条目已保存');
   } catch (error) {
@@ -937,6 +1112,31 @@ async function init() {
       await persistAllItemOrder(items);
     }
     renderTags();
+  // Custom tag dropdown logic
+  const tagInput = $('#tagInput');
+  const tagOptionsList = $('#tagOptionsList');
+  const selectArrow = document.querySelector('.select-arrow');
+  
+  if (tagInput && tagOptionsList && selectArrow) {
+    const toggleDropdown = (e) => {
+      e.stopPropagation();
+      tagOptionsList.classList.toggle('show');
+      if(tagOptionsList.classList.contains('show')) {
+        renderTagOptions(tags());
+      }
+    };
+    
+    tagInput.addEventListener('click', toggleDropdown);
+    selectArrow.addEventListener('click', toggleDropdown);
+    
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select-wrapper')) {
+        tagOptionsList.classList.remove('show');
+      }
+    });
+  }
+
     render();
   } catch (error) {
     console.error(error);
